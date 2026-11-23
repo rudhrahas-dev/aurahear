@@ -8,6 +8,11 @@ enum class MicSource {
     BLUETOOTH_MIC
 }
 
+enum class LatencyMode {
+    ULTRA_LOW_LATENCY,
+    HIGH_FIDELITY
+}
+
 enum class HearingPreset(val title: String) {
     BALANCED("Balanced"),
     CONVERSATION("Speech Focus"),
@@ -24,9 +29,10 @@ data class AudioSettings(
     var masterBoost: Float = 1.0f,         // 0.5f to 2.0f
     var isLinked: Boolean = false,          // Adjust both ears synchronously
     var isHighPassEnabled: Boolean = true, // Low-cut rumble filter (120Hz)
-    var isNoiseSuppressionEnabled: Boolean = true,
+    var isNoiseSuppressionEnabled: Boolean = false, // Set false by default to remove FFT lookahead delay
     var isSafetyLimiterEnabled: Boolean = true, // Soft-knee acoustic limiter
-    var micSource: MicSource = MicSource.PHONE_MIC
+    var micSource: MicSource = MicSource.PHONE_MIC,
+    var latencyMode: LatencyMode = LatencyMode.ULTRA_LOW_LATENCY
 ) {
     companion object {
         private const val PREFS_NAME = "aurahear_audio_prefs"
@@ -40,6 +46,7 @@ data class AudioSettings(
         private const val KEY_NOISE_SUPP = "noise_supp_enabled"
         private const val KEY_SAFETY_LIMITER = "safety_limiter_enabled"
         private const val KEY_MIC_SOURCE = "mic_source"
+        private const val KEY_LATENCY_MODE = "latency_mode"
 
         fun load(context: Context): AudioSettings {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -51,10 +58,13 @@ data class AudioSettings(
                 masterBoost = prefs.getFloat(KEY_MASTER_BOOST, 1.0f),
                 isLinked = prefs.getBoolean(KEY_LINKED, false),
                 isHighPassEnabled = prefs.getBoolean(KEY_HIGH_PASS, true),
-                isNoiseSuppressionEnabled = prefs.getBoolean(KEY_NOISE_SUPP, true),
+                isNoiseSuppressionEnabled = prefs.getBoolean(KEY_NOISE_SUPP, false),
                 isSafetyLimiterEnabled = prefs.getBoolean(KEY_SAFETY_LIMITER, true),
                 micSource = MicSource.valueOf(
                     prefs.getString(KEY_MIC_SOURCE, MicSource.PHONE_MIC.name) ?: MicSource.PHONE_MIC.name
+                ),
+                latencyMode = LatencyMode.valueOf(
+                    prefs.getString(KEY_LATENCY_MODE, LatencyMode.ULTRA_LOW_LATENCY.name) ?: LatencyMode.ULTRA_LOW_LATENCY.name
                 )
             )
         }
@@ -73,6 +83,7 @@ data class AudioSettings(
             putBoolean(KEY_NOISE_SUPP, isNoiseSuppressionEnabled)
             putBoolean(KEY_SAFETY_LIMITER, isSafetyLimiterEnabled)
             putString(KEY_MIC_SOURCE, micSource.name)
+            putString(KEY_LATENCY_MODE, latencyMode.name)
             apply()
         }
     }

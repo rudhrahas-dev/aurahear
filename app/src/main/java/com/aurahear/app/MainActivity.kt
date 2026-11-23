@@ -18,6 +18,7 @@ import android.view.View
 import com.aurahear.app.databinding.ActivityMainBinding
 import com.aurahear.app.model.AudioSettings
 import com.aurahear.app.model.HearingPreset
+import com.aurahear.app.model.LatencyMode
 import com.aurahear.app.model.MicSource
 import com.aurahear.app.receiver.BluetoothAudioMonitor
 import com.aurahear.app.service.HearingAidService
@@ -216,6 +217,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Filters and Safety Switches
+        binding.switchLowLatency.setOnCheckedChangeListener { _, isChecked ->
+            val settings = getCurrentSettings()
+            settings.latencyMode = if (isChecked) LatencyMode.ULTRA_LOW_LATENCY else LatencyMode.HIGH_FIDELITY
+            applySettings(settings)
+        }
+
         binding.switchSafetyLimiter.setOnCheckedChangeListener { _, isChecked ->
             val settings = getCurrentSettings()
             settings.isSafetyLimiterEnabled = isChecked
@@ -384,6 +391,7 @@ class MainActivity : AppCompatActivity() {
         updateMuteButtonUI(isLeft = true, isMuted = settings.isLeftMuted)
         updateMuteButtonUI(isLeft = false, isMuted = settings.isRightMuted)
 
+        binding.switchLowLatency.isChecked = (settings.latencyMode == LatencyMode.ULTRA_LOW_LATENCY)
         binding.switchSafetyLimiter.isChecked = settings.isSafetyLimiterEnabled
         binding.switchSpeechClarity.isChecked = settings.isHighPassEnabled
         binding.switchNoiseSuppression.isChecked = settings.isNoiseSuppressionEnabled

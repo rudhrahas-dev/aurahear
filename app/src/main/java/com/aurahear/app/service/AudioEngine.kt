@@ -8,11 +8,14 @@ import android.media.AudioManager
 import android.media.AudioRecord
 import android.media.AudioTrack
 import android.media.MediaRecorder
+import android.media.AudioDeviceInfo
 import android.media.audiofx.AcousticEchoCanceler
 import android.media.audiofx.NoiseSuppressor
+import android.os.Build
 import android.os.Process
 import android.util.Log
 import com.aurahear.app.model.AudioSettings
+import com.aurahear.app.model.LatencyMode
 import com.aurahear.app.model.MicSource
 import kotlin.math.abs
 import kotlin.math.max
@@ -28,7 +31,7 @@ class AudioEngine(
     companion object {
         private const val TAG = "AuraHear_AudioEngine"
         private const val SAMPLE_RATE = 44100
-        private const val CHUNK_SIZE = 512 // ~11.6ms chunks for minimal latency
+        private const val CHUNK_SIZE = 256 // ~5.8ms chunks for ultra-low latency
         private const val LIMITER_THRESHOLD = 24000f
         private const val MAX_PCM_VALUE = 32767f
     }
@@ -92,17 +95,43 @@ class AudioEngine(
 
     @SuppressLint("MissingPermission")
     private fun initAudioHardware() {
-        val micSource = when (settings.micSource) {
-            MicSource.PHONE_MIC -> MediaRecorder.AudioSource.VOICE_RECOGNITION
-            MicSource.BLUETOOTH_MIC -> {
+        val isUltraLow = settings.latencyMode == LatencyMode.ULTRA_LOW_LATENCY
+
+        if (isUltraLow) {
+            audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val commDevices = audioManager.availableCommunicationDevices
+                val targetDevice = commDevices.firstOrNull {
+                    it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
+                    it.type == AudioDeviceInfo.TYPE_BLE_HEADSET ||
+                    it.type == AudioDeviceInfo.TYPE_HEARING_AID ||
+                    it.type == AudioDeviceInfo.TYPE_WIRED_HEADSET
+                }
+                if (targetDevice != null) {
+                    audioManager.setCommunicationDevice(targetDevice)
+                }
+            } else {
                 try {
                     audioManager.startBluetoothSco()
                     audioManager.isBluetoothScoOn = true
                 } catch (e: Exception) {
-                    Log.w(TAG, "Bluetooth SCO start failed, falling back to MIC source", e)
+                    Log.w(TAG, "Bluetooth SCO start failed", e)
                 }
-                MediaRecorder.AudioSource.VOICE_COMMUNICATION
             }
+        } else {
+            audioManager.mode = AudioManager.MODE_NORMAL
+            if (settings.micSource == MicSource.BLUETOOTH_MIC) {
+                try {
+                    audioManager.startBluetoothSco()
+                    audioManager.isBluetoothScoOn = true
+                } catch (_: Exception) {}
+            }
+        }
+
+        val micSource = when {
+            isUltraLow -> MediaRecorder.AudioSource.VOICE_COMMUNICATION
+            settings.micSource == MicSource.PHONE_MIC -> MediaRecorder.AudioSource.VOICE_RECOGNITION
+            else -> MediaRecorder.AudioSource.VOICE_COMMUNICATION
         }
 
         val minRecBuf = AudioRecord.getMinBufferSize(
@@ -110,7 +139,7 @@ class AudioEngine(
             AudioFormat.CHANNEL_IN_MONO,
             AudioFormat.ENCODING_PCM_16BIT
         )
-        val recBufferSize = max(minRecBuf, CHUNK_SIZE * 4)
+        val recBufferSize = max(minRecBuf, CHUNK_SIZE * 2)
 
         audioRecord = AudioRecord(
             micSource,
@@ -125,11 +154,11 @@ class AudioEngine(
         }
 
         val sessionId = audioRecord?.audioSessionId ?: 0
-        if (sessionId != 0) {
+        if (sessionId != 0 && settings.isNoiseSuppressionEnabled) {
             if (NoiseSuppressor.isAvailable()) {
                 try {
                     noiseSuppressor = NoiseSuppressor.create(sessionId)?.apply {
-                        enabled = settings.isNoiseSuppressionEnabled
+                        enabled = true
                     }
                 } catch (e: Exception) {
                     Log.w(TAG, "Could not attach NoiseSuppressor", e)
@@ -151,10 +180,10 @@ class AudioEngine(
             AudioFormat.CHANNEL_OUT_STEREO,
             AudioFormat.ENCODING_PCM_16BIT
         )
-        val trackBufferSize = max(minTrackBuf, CHUNK_SIZE * 8)
+        val trackBufferSize = max(minTrackBuf, CHUNK_SIZE * 4)
 
         val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_MEDIA)
+            .setUsage(if (isUltraLow) AudioAttributes.USAGE_VOICE_COMMUNICATION else AudioAttributes.USAGE_MEDIA)
             .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
             .build()
 
@@ -176,16 +205,25 @@ class AudioEngine(
             throw IllegalStateException("AudioTrack initialization failed")
         }
 
+        // On API 24+, shrink the internal playback buffer to minimal underrun threshold
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            try {
+                audioTrack?.setBufferSizeInFrames(CHUNK_SIZE * 2)
+            } catch (_: Exception) {}
+        }
+
         audioRecord?.startRecording()
         audioTrack?.play()
     }
 
     private fun releaseAudioHardware() {
         try {
-            if (settings.micSource == MicSource.BLUETOOTH_MIC) {
-                audioManager.isBluetoothScoOn = false
-                audioManager.stopBluetoothSco()
+            audioManager.mode = AudioManager.MODE_NORMAL
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                audioManager.clearCommunicationDevice()
             }
+            audioManager.isBluetoothScoOn = false
+            audioManager.stopBluetoothSco()
         } catch (_: Exception) {}
 
         try {
@@ -312,6 +350,7 @@ class AudioEngine(
 
     fun updateSettings(newSettings: AudioSettings) {
         val oldSource = this.settings.micSource
+        val oldLatency = this.settings.latencyMode
         val oldNoiseSupp = this.settings.isNoiseSuppressionEnabled
         this.settings = newSettings
 
@@ -321,8 +360,8 @@ class AudioEngine(
                     noiseSuppressor?.enabled = newSettings.isNoiseSuppressionEnabled
                 } catch (_: Exception) {}
             }
-            // If mic source changed, we need a quick hardware restart
-            if (oldSource != newSettings.micSource) {
+            // If mic source or latency mode changed, restart hardware
+            if (oldSource != newSettings.micSource || oldLatency != newSettings.latencyMode) {
                 restart()
             }
         }
