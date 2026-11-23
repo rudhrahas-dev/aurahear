@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.AuraHear" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/primary_cyan</item>
+        <item name="colorSecondary">@color/ear_right</item>
+        <item name="android:statusBarColor">@color/bg_main</item>
+        <item name="android:navigationBarColor">@color/bg_main</item>
+        <item name="android:windowBackground">@color/bg_main</item>
+    </style>
+</resources>

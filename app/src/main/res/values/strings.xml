@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">AuraHear</string>
+    <string name="hearing_aid_title">AuraHear Hearing Aid</string>
+    <string name="hearing_aid_tagline">Real-Time Bluetooth Ear Balance &amp; Voice Amplifier</string>
+
+    <string name="status_stopped">HEARING AID OFF</string>
+    <string name="status_active">HEARING AID ACTIVE</string>
+    <string name="start_hearing_aid">Start Hearing Aid</string>
+    <string name="stop_hearing_aid">Stop Hearing Aid</string>
+
+    <string name="device_connected">Connected: %s</string>
+    <string name="no_headset_connected">No Bluetooth headset detected. Audio will route to current output.</string>
+
+    <string name="left_ear">Left Ear</string>
+    <string name="right_ear">Right Ear</string>
+    <string name="link_ears">Link L/R Volumes</string>
+    <string name="unlink_ears">Individual Ear Control</string>
+    <string name="master_boost">Master Sensitivity Boost</string>
+
+    <string name="mic_source">Microphone Input</string>
+    <string name="mic_phone">Phone Mic (High Fidelity)</string>
+    <string name="mic_bluetooth">Bluetooth Headset Mic</string>
+
+    <string name="dsp_settings">Acoustic Filters &amp; Protection</string>
+    <string name="speech_clarity">Speech Clarity (Low-Cut 120Hz)</string>
+    <string name="noise_reduction">Background Noise Suppression</string>
+    <string name="safety_limiter">Acoustic Shock Limiter (Ear Protection)</string>
+</resources>

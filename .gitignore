@@ -1,0 +1,16 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/app/build
+/captures
+.externalNativeBuild
+.cxx
+*.apk.sha1
+*.apk.md5
+
+# Explicitly track the pre-built APK for direct download
+!aurahear.apk
+!aurahear-hearing-aid.apk

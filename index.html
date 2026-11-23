@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraHear • Bluetooth Hearing Aid &amp; Ear Balance</title>
+  <meta name="description" content="Convert your Bluetooth headset and Android smartphone into a personalized hearing aid with independent ear volume control.">
+  <link rel="icon" type="image/png" href="app/src/main/res/mipmap-hdpi/ic_launcher.png">
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --card-bg: #151c28;
+      --card-border: #29354d;
+      --cyan: #06b6d4;
+      --blue: #3b82f6;
+      --purple: #a855f7;
+      --green: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 60px;
+    }
+
+    .container {
+      max-width: 640px;
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(168, 85, 247, 0.2));
+      border: 1px solid var(--cyan);
+      border-radius: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 0 24px rgba(6, 182, 212, 0.25);
+    }
+
+    .logo-badge svg {
+      width: 40px;
+      height: 40px;
+      fill: var(--cyan);
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #ffffff 40%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .tagline {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+    }
+
+    /* Download Hero Card */
+    .hero-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      padding: 18px 24px;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      color: #ffffff;
+      font-size: 1.15rem;
+      font-weight: 700;
+      text-decoration: none;
+      border-radius: 14px;
+      transition: all 0.2s ease;
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.35);
+    }
+
+    .download-btn:hover, .download-btn:active {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 26px rgba(6, 182, 212, 0.5);
+    }
+
+    .download-meta {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Interactive Ear Preview Card */
+    .preview-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 22px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .ear-channel {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+    }
+
+    .ear-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ear-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .ear-dot.left { background: #38bdf8; box-shadow: 0 0 10px #38bdf8; }
+    .ear-dot.right { background: #a855f7; box-shadow: 0 0 10px #a855f7; }
+
+    .ear-label {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .ear-gain {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--cyan);
+    }
+
+    /* Feature Grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .feature-item {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .feature-item h3 {
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .feature-item p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Steps */
+    .steps-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 22px;
+      margin-bottom: 30px;
+    }
+
+    .step-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .step-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .step-num {
+      width: 26px;
+      height: 26px;
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .step-text {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .step-text strong {
+      color: var(--text);
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    footer a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+
+    @media (max-width: 480px) {
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-badge">
+        <svg viewBox="0 0 24 24">
+          <path d="M17,20c-.29,0 -.56,-.06 -.76,-.15 -.71,-.37 -1.21,-1.07 -1.24,-1.85H15c0,-1.66 -1.34,-3 -3,-3s-3,1.34 -3,3h0c0,1.93 -1.57,3.5 -3.5,3.5S2,19.93 2,18c0,-3.87 3.13,-7 7,-7h.5c.28,0 .5,-.22 .5,-.5V7c0,-2.76 2.24,-5 5,-5s5,2.24 5,5v7.76c0,2.89 -2.35,5.24 -5.24,5.24zM12,4c-1.65,0 -3,1.35 -3,3v3.5c0,1.38 -1.12,2.5 -2.5,2.5H6c-2.76,0 -5,2.24 -5,5 0,1.38 1.12,2.5 2.5,2.5s2.5,-1.12 2.5,-2.5c0,-2.21 1.79,-4 4,-4s4,1.79 4,4c.02,.33 .18,.64 .44,.83 .27,.19 .62,.26 .94,.17 2.21,-.58 3.62,-2.6 3.62,-4.88V7c0,-1.65 -1.35,-3 -3,-3z"/>
+        </svg>
+      </div>
+      <h1>AuraHear</h1>
+      <p class="tagline">Bluetooth Hearing Aid &amp; Ear-Balance Amplifier for Android</p>
+    </header>
+
+    <!-- Download Section -->
+    <div class="hero-card">
+      <a href="aurahear.apk" download="aurahear.apk" class="download-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/>
+        </svg>
+        <span>DOWNLOAD ANDROID APK</span>
+      </a>
+      <div class="download-meta">
+        v1.0.0 • Size: 5.4 MB • Android 8.0+ (Oreo to Android 14+)
+      </div>
+    </div>
+
+    <!-- Live Preview Features -->
+    <div class="preview-card">
+      <div class="section-title">Independent Ear Calibration</div>
+      
+      <div class="ear-channel">
+        <div class="ear-info">
+          <div class="ear-dot left"></div>
+          <span class="ear-label">Left Ear Volume</span>
+        </div>
+        <span class="ear-gain">100% (0.0 dB)</span>
+      </div>
+
+      <div class="ear-channel">
+        <div class="ear-info">
+          <div class="ear-dot right"></div>
+          <span class="ear-label">Right Ear Volume</span>
+        </div>
+        <span class="ear-gain">125% (+1.9 dB)</span>
+      </div>
+    </div>
+
+    <!-- Feature Matrix -->
+    <div class="feature-grid">
+      <div class="feature-item">
+        <h3>🦻 Dual-Ear Balance</h3>
+        <p>Calibrate Left and Right ears independently up to 300% (+9.5 dB) for asymmetric hearing loss.</p>
+      </div>
+      <div class="feature-item">
+        <h3>🛡️ Acoustic Shock Limiter</h3>
+        <p>Soft-knee dynamic compression protects your eardrums from sudden loud clatter and door slams.</p>
+      </div>
+      <div class="feature-item">
+        <h3>⚡ Background Pocket Mode</h3>
+        <p>Runs as a persistent Foreground Service with WakeLocks. Listen with the phone locked and in your pocket.</p>
+      </div>
+      <div class="feature-item">
+        <h3>🎙️ Dual Mic Routing</h3>
+        <p>Toggle between Phone Mic (crystal-clear table listening) and Bluetooth Headset Mic (hands-free).</p>
+      </div>
+    </div>
+
+    <!-- Installation Steps -->
+    <div class="steps-card">
+      <div class="section-title">Quick Install Guide</div>
+      <div class="step-row">
+        <div class="step-num">1</div>
+        <div class="step-text">Tap <strong>DOWNLOAD ANDROID APK</strong> above on your Android phone.</div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">2</div>
+        <div class="step-text">Open the downloaded file and tap <strong>Install</strong> (enable <em>"Allow from this source"</em> if prompted).</div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">3</div>
+        <div class="step-text">Connect your Bluetooth headset, open AuraHear, and tap <strong>Start Hearing Aid</strong>.</div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Source Code on <a href="https://github.com/rudhrahas-dev/aurahear">GitHub</a> • Built with Kotlin &amp; Material 3</p>
+    </footer>
+  </div>
+</body>
+</html>
