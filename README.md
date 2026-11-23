@@ -1,6 +1,10 @@
-# AuraHear • Bluetooth Hearing Aid & Ear-Balance Amplifier
+<div align="center">
+  <img src="icon.png" width="128" height="128" alt="AuraHear Icon" style="border-radius: 28px;" />
+  <h1>AuraHear • Bluetooth Hearing Aid</h1>
+  <p>Real-Time Dual-Ear Balance &amp; Voice Amplifier for Android</p>
+</div>
 
-An open-source Android application that transforms your smartphone and Bluetooth headset / earbuds into a personalized, low-latency hearing aid. Features independent volume calibration for each ear, acoustic hearing safety protection, and background screen-off operation.
+An open-source Android application that transforms your smartphone and Bluetooth headset / earbuds into a personalized, low-latency hearing aid. Features independent volume calibration for each ear, acoustic hearing safety protection, in-app OTA auto-updates, and background screen-off operation.
 
 Available live at: **[https://rudhrahas-dev.github.io/aurahear/](https://rudhrahas-dev.github.io/aurahear/)**  
 Direct Android APK Download: **[`aurahear.apk`](aurahear.apk)**  
@@ -9,6 +13,11 @@ Alternative Raw Download: **[Download `aurahear.apk` (Direct GitHub Link)](https
 ---
 
 ## ⚡ Key Features
+
+* **🔄 In-App OTA Auto-Updater:**
+  * Checks GitHub Releases automatically on launch and notifies you when an update is available.
+  * One-tap download with live progress and automatic installation via Android `FileProvider`.
+  * Manual "Check for Updates" trigger in the app footer.
 
 * **🦻 Independent Ear Volume & Balance Calibration:**
   * **Per-Ear Sliders:** Calibrate Left and Right ears independently from **0% up to 300%** (`-60 dB` to `+9.5 dB`) to accommodate asymmetric hearing thresholds.

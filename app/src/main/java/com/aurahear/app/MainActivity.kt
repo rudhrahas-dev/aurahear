@@ -14,18 +14,21 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import android.view.View
 import com.aurahear.app.databinding.ActivityMainBinding
 import com.aurahear.app.model.AudioSettings
 import com.aurahear.app.model.HearingPreset
 import com.aurahear.app.model.MicSource
 import com.aurahear.app.receiver.BluetoothAudioMonitor
 import com.aurahear.app.service.HearingAidService
+import com.aurahear.app.update.AppUpdateManager
 import kotlin.math.log10
 import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var updateManager: AppUpdateManager
 
     private var hearingService: HearingAidService? = null
     private var isServiceBound = false
@@ -77,12 +80,20 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        updateManager = AppUpdateManager(this)
+        binding.tvAppVersion.text = "AuraHear v${updateManager.currentVersionName}"
+
         setupListeners()
         setupBluetoothMonitor()
 
         // Bind to existing service if running
         val serviceIntent = Intent(this, HearingAidService::class.java)
         bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+
+        // Automatically check for OTA updates 2.5s after launch
+        binding.root.postDelayed({
+            checkForUpdates(silent = true)
+        }, 2500)
     }
 
     override fun onDestroy() {
@@ -233,6 +244,66 @@ class MainActivity : AppCompatActivity() {
             }
             applySettings(settings)
         }
+
+        // OTA Auto-Update Controls
+        binding.btnCheckUpdate.setOnClickListener {
+            checkForUpdates(silent = false)
+        }
+
+        binding.btnDismissUpdate.setOnClickListener {
+            binding.cardUpdateBanner.visibility = View.GONE
+        }
+
+        binding.btnApplyUpdate.setOnClickListener {
+            startInAppUpdate()
+        }
+    }
+
+    private fun checkForUpdates(silent: Boolean = false) {
+        if (!silent) {
+            Toast.makeText(this, "Checking for updates...", Toast.LENGTH_SHORT).show()
+        }
+        updateManager.checkForUpdate { info ->
+            runOnUiThread {
+                if (info.hasUpdate) {
+                    binding.tvUpdateTag.text = info.tagName
+                    binding.tvUpdateNotes.text = info.releaseNotes
+                    binding.cardUpdateBanner.visibility = View.VISIBLE
+                    binding.layoutUpdateActions.visibility = View.VISIBLE
+                    binding.pbUpdateProgress.visibility = View.GONE
+                    binding.tvUpdateProgressText.visibility = View.GONE
+                } else if (!silent) {
+                    val msg = if (info.error != null) {
+                        "Update check failed: ${info.error}"
+                    } else {
+                        "AuraHear is up to date (v${updateManager.currentVersionName})"
+                    }
+                    Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    private fun startInAppUpdate() {
+        binding.layoutUpdateActions.visibility = View.GONE
+        binding.pbUpdateProgress.visibility = View.VISIBLE
+        binding.pbUpdateProgress.progress = 0
+        binding.tvUpdateProgressText.visibility = View.VISIBLE
+        binding.tvUpdateProgressText.text = "Downloading update... 0%"
+
+        updateManager.downloadAndInstall(
+            activity = this,
+            onProgress = { progress ->
+                binding.pbUpdateProgress.progress = progress
+                binding.tvUpdateProgressText.text = "Downloading update... $progress%"
+            },
+            onError = { error ->
+                binding.layoutUpdateActions.visibility = View.VISIBLE
+                binding.pbUpdateProgress.visibility = View.GONE
+                binding.tvUpdateProgressText.visibility = View.GONE
+                Toast.makeText(this, "Update failed: $error", Toast.LENGTH_LONG).show()
+            }
+        )
     }
 
     private fun checkPermissionsAndToggle() {
